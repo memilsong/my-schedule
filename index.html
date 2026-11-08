@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="브라우저에서 간편하게 사용하는 개인 일정 관리 캘린더" />
+  <title>나의 일정</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%235068e8'/%3E%3Cg fill='none' stroke='white' stroke-width='4' stroke-linecap='round'%3E%3Crect x='16' y='20' width='32' height='28' rx='6'/%3E%3Cpath d='M16 28h32M24 14v10M40 14v10'/%3E%3C/g%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="5" width="18" height="16" rx="3"></rect>
+            <path d="M8 3v4M16 3v4M3 10h18"></path>
+            <path d="M8 14h.01M12 14h.01M16 14h.01M8 17h.01M12 17h.01"></path>
+          </svg>
+        </span>
+        <div class="brand-text">
+          <h1>나의 일정</h1>
+          <p>하루를 가볍게 정리하는 나만의 달력</p>
+        </div>
+      </div>
+      <button type="button" class="btn btn-primary" id="addEventBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+          <path d="M12 5v14M5 12h14"></path>
+        </svg>
+        일정 추가
+      </button>
+    </header>
+
+    <main class="layout">
+      <section class="calendar-card" aria-labelledby="monthLabel">
+        <div class="calendar-head">
+          <div class="month-nav">
+            <button type="button" class="icon-btn" id="prevMonthBtn" aria-label="이전 달">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M15 18l-6-6 6-6"></path>
+              </svg>
+            </button>
+            <h2 id="monthLabel" aria-live="polite">-</h2>
+            <button type="button" class="icon-btn" id="nextMonthBtn" aria-label="다음 달">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M9 6l6 6-6 6"></path>
+              </svg>
+            </button>
+          </div>
+          <button type="button" class="btn btn-ghost btn-sm" id="todayBtn">오늘</button>
+        </div>
+
+        <div class="weekdays" aria-hidden="true">
+          <span class="sun">일</span>
+          <span>월</span>
+          <span>화</span>
+          <span>수</span>
+          <span>목</span>
+          <span>금</span>
+          <span class="sat">토</span>
+        </div>
+
+        <div class="calendar-grid" id="calendarGrid" role="grid" aria-label="월간 일정 달력"></div>
+
+        <div class="calendar-footer">
+          <p class="calendar-hint">날짜를 선택해 일정을 확인하고 추가해 보세요.</p>
+          <ul class="category-legend" aria-label="분류별 일정 색상">
+            <li><span class="legend-dot is-personal" aria-hidden="true"></span>개인</li>
+            <li><span class="legend-dot is-family" aria-hidden="true"></span>가족</li>
+            <li><span class="legend-dot is-other" aria-hidden="true"></span>기타</li>
+          </ul>
+        </div>
+      </section>
+
+      <aside class="day-panel" aria-labelledby="selectedDateLabel">
+        <div class="day-panel-head">
+          <div>
+            <p class="eyebrow">선택한 날짜</p>
+            <h2 id="selectedDateLabel">-</h2>
+          </div>
+          <span class="count-badge" id="dayEventCount" aria-label="일정 수">0</span>
+        </div>
+
+        <button type="button" class="btn btn-soft btn-block" id="addForSelectedBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <path d="M12 5v14M5 12h14"></path>
+          </svg>
+          이 날짜에 일정 추가
+        </button>
+
+        <ul class="event-list" id="dayEventList" aria-label="선택한 날짜의 일정 목록"></ul>
+
+        <div class="empty-state" id="dayEmptyState">
+          <span class="empty-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="5" width="18" height="16" rx="3"></rect>
+              <path d="M8 3v4M16 3v4M3 10h18"></path>
+              <path d="M12 14v4M10 16h4"></path>
+            </svg>
+          </span>
+          <p class="empty-title">아직 일정이 없어요</p>
+          <p class="empty-desc">이 날짜에 첫 일정을 추가해 보세요.</p>
+        </div>
+
+        <p class="notify-note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 7-3 9h18c0-2-3-2-3-9"></path>
+            <path d="M10.3 21a2 2 0 0 0 3.4 0"></path>
+          </svg>
+          <span>알림은 기본으로 일정 시작 <strong>30분 전</strong>으로 표시됩니다. 실제 알림은 전송되지 않아요.</span>
+        </p>
+      </aside>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="modalBackdrop" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <form id="eventForm" novalidate>
+        <div class="modal-head">
+          <h2 id="modalTitle">새 일정</h2>
+          <button type="button" class="icon-btn" id="closeModalBtn" aria-label="닫기">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+              <path d="M18 6L6 18M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <div class="field">
+            <label for="eventDate">날짜</label>
+            <input type="date" id="eventDate" name="date" required />
+          </div>
+
+          <div class="field">
+            <label for="eventTitle">일정 제목</label>
+            <input type="text" id="eventTitle" name="title" placeholder="예: 팀 주간 회의" maxlength="60" autocomplete="off" required />
+          </div>
+
+          <fieldset class="category-field">
+            <legend>분류</legend>
+            <div class="category-options">
+              <label class="category-option category-personal">
+                <input type="radio" name="category" value="personal" checked />
+                <span class="category-pill"><span class="category-dot" aria-hidden="true"></span>개인</span>
+              </label>
+              <label class="category-option category-family">
+                <input type="radio" name="category" value="family" />
+                <span class="category-pill"><span class="category-dot" aria-hidden="true"></span>가족</span>
+              </label>
+              <label class="category-option category-other">
+                <input type="radio" name="category" value="other" />
+                <span class="category-pill"><span class="category-dot" aria-hidden="true"></span>기타</span>
+              </label>
+            </div>
+          </fieldset>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="eventTime">시작 시간</label>
+              <input type="time" id="eventTime" name="time" required />
+            </div>
+            <div class="field">
+              <label for="eventNotify">알림 표시</label>
+              <select id="eventNotify" name="notify">
+                <option value="0">없음</option>
+                <option value="10">10분 전</option>
+                <option value="30" selected>30분 전 (기본)</option>
+                <option value="60">1시간 전</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="eventMemo">메모 <span class="optional">(선택)</span></label>
+            <textarea id="eventMemo" name="memo" rows="4" maxlength="500" placeholder="장소, 준비물 등 기억할 내용을 적어 두세요."></textarea>
+            <span class="char-count" id="memoCount">0 / 500</span>
+          </div>
+
+          <p class="form-error" id="formError" role="alert" hidden></p>
+        </div>
+
+        <div class="modal-foot">
+          <button type="button" class="btn btn-danger-ghost" id="deleteEventBtn" hidden>삭제</button>
+          <div class="modal-foot-right">
+            <button type="button" class="btn btn-ghost" id="cancelBtn">취소</button>
+            <button type="submit" class="btn btn-primary">저장</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
